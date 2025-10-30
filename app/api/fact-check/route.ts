@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-const GOOGLE_API_KEY = process.env.GOOGLE_FACT_CHECK_API_KEY
+const GOOGLE_API_KEY = "AIzaSyATm3waKotHFsyylcZ7mypGLKrBRTsw6vs";
 const API_ENDPOINT = "https://factchecktools.googleapis.com/v1alpha1/claims:search"
 
 export async function POST(request: NextRequest) {
