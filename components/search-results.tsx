@@ -26,8 +26,10 @@ interface Claim {
 
 interface SearchResultsProps {
   data: {
-    claims: Claim[]
-  }
+    fact_check_results: {
+      claims: Claim[];
+    };
+  };
 }
 
 const getRatingColor = (rating: string) => {
@@ -42,7 +44,7 @@ const getRatingColor = (rating: string) => {
 }
 
 export default function SearchResults({ data }: SearchResultsProps) {
-  if (!data.claims || data.claims.length === 0) {
+  if (!data.fact_check_results.claims || data.fact_check_results.claims.length === 0) {
     return (
       <Card className="p-8 text-center">
         <p className="text-muted-foreground">No fact-checks found for this query.</p>
@@ -53,10 +55,10 @@ export default function SearchResults({ data }: SearchResultsProps) {
   return (
     <div className="space-y-6 pb-12">
       <div className="text-sm text-muted-foreground">
-        Found {data.claims.length} claim{data.claims.length !== 1 ? "s" : ""} to verify
+        Found {data.fact_check_results.claims.length} claim{data.fact_check_results.claims.length !== 1 ? "s" : ""} to verify
       </div>
 
-      {data.claims.map((claim, claimIndex) => (
+      {data.fact_check_results.claims.map((claim, claimIndex) => (
         <Card key={claimIndex} className="overflow-hidden hover:shadow-lg transition-shadow">
           <div className="p-6 space-y-4">
             {/* Claim Text */}
