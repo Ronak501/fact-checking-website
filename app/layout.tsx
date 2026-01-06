@@ -1,10 +1,6 @@
-import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/next'
-import './globals.css'
-
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
+import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Fact Checking Website",
@@ -17,15 +13,23 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <body className={`font-sans antialiased`}>
+      <head>
+        {/* Geist Font CDN */}
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/geist-font/dist/geist.min.css"
+        />
+      </head>
+
+      <body className="font-sans antialiased">
         {children}
         <Analytics />
       </body>
     </html>
-  )
+  );
 }
