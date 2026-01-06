@@ -93,7 +93,7 @@ export async function POST(request: Request) {
     // -----------------------------------
     return NextResponse.json({
       user_query: query,
-      nlp_query: nlpQuery,
+      // nlp_query: nlpQuery,
       fact_check_results: factData,
     });
   } catch (error: any) {
