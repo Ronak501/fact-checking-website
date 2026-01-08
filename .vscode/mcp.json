@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "Sentry": {
+      "url": "https://mcp.sentry.dev/mcp/sarvajanik-college-of-engin-n5/javascript-nextjs-2m",
+      "type": "http"
+    }
+  }
+}

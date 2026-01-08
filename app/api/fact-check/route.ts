@@ -2,12 +2,11 @@ import { NextResponse } from "next/server";
 
 // 1. API KEYS
 const GOOGLE_API_KEY = "AIzaSyATm3waKotHFsyylcZ7mypGLKrBRTsw6vs";
-// const GEMINI_API_KEY = "AIzaSyAr9eW0BD71PdHaXKsm24BlI3DkC-x6fWA";
+const GEMINI_API_KEY = "AIzaSyAr9eW0BD71PdHaXKsm24BlI3DkC-x6fWA";
 
 // 2. API URLs
 const FACT_API = "https://factchecktools.googleapis.com/v1alpha1/claims:search";
-const GEMINI_API =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+const GEMINI_API = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
 
 export async function POST(request: Request) {
   try {
@@ -21,56 +20,55 @@ export async function POST(request: Request) {
     // -------------------------------
     // 2. NLP PROCESS USING GEMINI AI
     // -------------------------------
-    // const geminiUrl = `${GEMINI_API}?key=${GEMINI_API_KEY}`;
+    const geminiUrl = `${GEMINI_API}?key=${GEMINI_API_KEY}`;
 
-    // const geminiBody = {
-    //   contents: [
-    //     {
-    //       parts: [
-    //         {
-    //           text: `Rewrite the user's message into ONE short, clear, fact-checkable claim.
-    //           RULES:
-    //           - Output ONLY the claim.
-    //           - No explanation.
-    //           - No extra text.
-    //           - No list.
-    //           - No markdown.
-    //           - Maximum 15 words.
-    //           - If vague, make a reasonable guess to form a checkable statement.
+    const geminiBody = {
+      contents: [
+        {
+          parts: [
+            {
+              text: `Rewrite the user's message into ONE short, clear, fact-checkable claim.
+              RULES:
+              - Output ONLY the claim.
+              - No explanation.
+              - No extra text.
+              - No list.
+              - No markdown.
+              - Maximum 15 words.
+              - If vague, make a reasonable guess to form a checkable statement.
 
-    //           User query: "${query}"
+              User query: "${query}"
 
-    //           Return only the final claim:`,
-    //         },
-    //       ],
-    //     },
-    //   ],
-    // };
+              Return only the final claim:`,
+            },
+          ],
+        },
+      ],
+    };
 
+    const geminiResponse = await fetch(geminiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(geminiBody),
+    });
 
-    // const geminiResponse = await fetch(geminiUrl, {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify(geminiBody),
-    // });
+    if (!geminiResponse.ok) {
+      const errText = await geminiResponse.text();
+      console.error("Gemini API Error:", errText);
+      throw new Error("Gemini AI NLP failed: " + errText);
+    }
 
-    // if (!geminiResponse.ok) {
-    //   const errText = await geminiResponse.text();
-    //   console.error("Gemini API Error:", errText);
-    //   throw new Error("Gemini AI NLP failed: " + errText);
-    // }
+    const geminiData = await geminiResponse.json();
 
-    // const geminiData = await geminiResponse.json();
+    console.log("Gemini AI Response:", geminiData);
 
-    // console.log("Gemini AI Response:", geminiData);
+    const nlpQuery = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
 
-    // const nlpQuery = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!nlpQuery) {
+      throw new Error("Failed to extract NLP query");
+    }
 
-    // if (!nlpQuery) {
-    //   throw new Error("Failed to extract NLP query");
-    // }
-
-    // console.log("NLP Processed Query:", nlpQuery);
+    console.log("NLP Processed Query:", nlpQuery);
 
     // ---------------------------------------------------
     // 3. PASS NLP QUERY TO GOOGLE FACT CHECK API
