@@ -41,8 +41,8 @@ const getRatingColor = (rating: string) => {
 
 export default function SearchResults({ data }: SearchResultsProps) {
 
-  // 🔍 AI-GENERATED IMAGE / VIDEO RESULT
-  if (data.input_type === "image" || data.input_type === "video") {
+  // 🔍 IMAGE / VIDEO → AI DETECTION RESULT
+  if (data?.input_type === "image" || data?.input_type === "video") {
     const result = data.ai_generated_check
 
     return (
@@ -74,7 +74,7 @@ export default function SearchResults({ data }: SearchResultsProps) {
     )
   }
 
-  // 🔍 FACT-CHECK RESULT (TEXT / LINK)
+  // 🔍 TEXT / LINK → FACT CHECK RESULT
   const claims = data?.fact_check_results?.claims
 
   if (!claims || claims.length === 0) {
@@ -86,4 +86,87 @@ export default function SearchResults({ data }: SearchResultsProps) {
       </Card>
     )
   }
+
+  // ✅ THIS WAS MISSING 👇
+  return (
+    <div className="space-y-6 pb-12">
+      <div className="text-sm text-muted-foreground">
+        Found {claims.length} claim{claims.length !== 1 ? "s" : ""}
+      </div>
+
+      {claims.map((claim: Claim, claimIndex: number) => (
+        <Card
+          key={claimIndex}
+          className="overflow-hidden hover:shadow-lg transition-shadow"
+        >
+          <div className="p-6 space-y-4">
+            {/* Claim Text */}
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">{claim.text}</h3>
+              {claim.claimant && (
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-medium">Claimed by:</span>{" "}
+                  {claim.claimant}
+                </p>
+              )}
+            </div>
+
+            {/* Claim Date */}
+            {claim.claimDate && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Calendar className="w-4 h-4" />
+                {formatDate(claim.claimDate)}
+              </div>
+            )}
+
+            <div className="border-t border-border" />
+
+            {/* Fact-Check Reviews */}
+            <div className="space-y-4">
+              <h4 className="font-semibold">Fact-Check Results</h4>
+
+              {claim.claimReview.map((review, reviewIndex) => (
+                <div
+                  key={reviewIndex}
+                  className="p-4 bg-card border border-border rounded-lg space-y-3"
+                >
+                  <div className="flex justify-between items-start gap-4">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-muted-foreground" />
+                      <div>
+                        <p className="font-semibold">
+                          {review.publisher.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {review.publisher.site}
+                        </p>
+                      </div>
+                    </div>
+
+                    <Badge className={getRatingColor(review.textualRating)}>
+                      {review.textualRating}
+                    </Badge>
+                  </div>
+
+                  <a
+                    href={review.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block text-sm text-primary hover:underline"
+                  >
+                    {review.title}
+                    <ExternalLink className="inline w-3 h-3 ml-1" />
+                  </a>
+
+                  <p className="text-xs text-muted-foreground">
+                    {formatDate(review.reviewDate)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Card>
+      ))}
+    </div>
+  )
 }
