@@ -1,0 +1,25 @@
+{
+  "enabled": true,
+  "name": "Video Detection",
+  "description": "Automatically detects when video files are created or edited and triggers analysis",
+  "version": "1",
+  "when": {
+    "type": "fileCreated",
+    "patterns": [
+      "*.mp4",
+      "*.avi",
+      "*.mov",
+      "*.mkv",
+      "*.webm",
+      "*.flv",
+      "*.wmv",
+      "*.m4v"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A video file has been detected. Please analyze the video file and provide information about its format, duration, resolution, and any other relevant metadata."
+  },
+  "workspaceFolderName": "fact-checking-website",
+  "shortName": "video-detection-hook"
+}
