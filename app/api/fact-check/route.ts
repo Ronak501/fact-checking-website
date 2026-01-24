@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 
 // 1. API KEYS
-const GOOGLE_API_KEY = "AIzaSyATm3waKotHFsyylcZ7mypGLKrBRTsw6vs";
-const GEMINI_API_KEY = "AIzaSyAr9eW0BD71PdHaXKsm24BlI3DkC-x6fWA";
+const GOOGLE_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_API_KEY!;
+const GEMINI_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY!;
 
-// 2. API URLs
-const FACT_API = "https://factchecktools.googleapis.com/v1alpha1/claims:search";
-const GEMINI_API = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+const FACT_API = process.env.NEXT_PUBLIC_FACT_API!;
+const GEMINI_API = process.env.NEXT_PUBLIC_GEMINI_API!;
 
 export async function POST(request: Request) {
   try {
@@ -74,7 +73,7 @@ export async function POST(request: Request) {
     // 3. PASS NLP QUERY TO GOOGLE FACT CHECK API
     // ---------------------------------------------------
     const factUrl = new URL(FACT_API);
-    factUrl.searchParams.append("query", query);
+    factUrl.searchParams.append("query", nlpQuery);
     factUrl.searchParams.append("key", GOOGLE_API_KEY);
 
     const factResponse = await fetch(factUrl.toString());

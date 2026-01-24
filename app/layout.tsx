@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     "A simple fact-checking website using Google Fact Check API and Gemini NLP",
   icons: {
-    icon: "/scet.jpg",
+    // icon: "/scet.jpg",
   },
 };
 
