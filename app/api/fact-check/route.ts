@@ -1,103 +1,226 @@
-import { NextResponse } from "next/server";
+import { NextResponse } from "next/server"
 
-// 1. API KEYS
-const GOOGLE_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_API_KEY!;
-const GEMINI_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY!;
-
-const FACT_API = process.env.NEXT_PUBLIC_FACT_API!;
-const GEMINI_API = process.env.NEXT_PUBLIC_GEMINI_API!;
+// API KEYS
+const GOOGLE_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_API_KEY!
+const GEMINI_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY!
+const FACT_API = process.env.NEXT_PUBLIC_FACT_API!
+const GEMINI_API = process.env.NEXT_PUBLIC_GEMINI_API!
 
 export async function POST(request: Request) {
-  try {
-    // 1. Read user input
-    const { query } = await request.json();
 
-    if (!query) {
-      return NextResponse.json({ error: "Query is required" }, { status: 400 });
-    }
+  async function processTextWithGemini(query: string): Promise<string> {
+    const geminiUrl = `${GEMINI_API}?key=${GEMINI_API_KEY}`
 
-    // -------------------------------
-    // 2. NLP PROCESS USING GEMINI AI
-    // -------------------------------
-    const geminiUrl = `${GEMINI_API}?key=${GEMINI_API_KEY}`;
-
-    const geminiBody = {
+    const body = {
       contents: [
         {
           parts: [
             {
               text: `Rewrite the user's message into ONE short, clear, fact-checkable claim.
               RULES:
-              - Output ONLY the claim.
-              - No explanation.
-              - No extra text.
-              - No list.
-              - No markdown.
-              - Maximum 15 words.
-              - If vague, make a reasonable guess to form a checkable statement.
+              - Output ONLY the claim
+              - Max 15 words
+              - No explanation
 
-              User query: "${query}"
+              User input: "${query}"
 
-              Return only the final claim:`,
+              Return only the claim:`,
             },
           ],
         },
       ],
-    };
+    }
 
-    const geminiResponse = await fetch(geminiUrl, {
+    const res = await fetch(geminiUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(geminiBody),
-    });
+      body: JSON.stringify(body),
+    })
 
-    if (!geminiResponse.ok) {
-      const errText = await geminiResponse.text();
-      console.error("Gemini API Error:", errText);
-      throw new Error("Gemini AI NLP failed: " + errText);
+    const data = await res.json()
+
+    const claim = data.candidates?.[0]?.content?.parts?.[0]?.text
+    if (!claim) throw new Error("Gemini NLP failed")
+
+    return claim
+  }
+
+  async function processMediaWithGemini(
+    file: File,
+    type: "image" | "video"
+  ): Promise<string> {
+    const bytes = await file.arrayBuffer()
+    const base64 = Buffer.from(bytes).toString("base64")
+
+    const geminiUrl = `${GEMINI_API}?key=${GEMINI_API_KEY}`
+
+    const body = {
+      contents: [
+        {
+          parts: [
+            {
+              inlineData: {
+                mimeType: file.type,
+                data: base64,
+              },
+            },
+            {
+              text: `Extract ONE clear, factual claim from this ${type}.
+              - Output ONLY the claim
+              - Max 15 words
+              - No explanation`,
+            },
+          ],
+        },
+      ],
     }
 
-    const geminiData = await geminiResponse.json();
+    const res = await fetch(geminiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    })
 
-    console.log("Gemini AI Response:", geminiData);
+    const data = await res.json()
 
-    const nlpQuery = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+    const claim = data.candidates?.[0]?.content?.parts?.[0]?.text
+    if (!claim) throw new Error("Gemini Vision failed")
 
-    if (!nlpQuery) {
-      throw new Error("Failed to extract NLP query");
+    return claim
+  }
+
+  async function detectAIGeneratedMedia(
+    file: File,
+    type: "image" | "video"
+  ): Promise<{
+    verdict: "AI_GENERATED" | "LIKELY_REAL" | "UNCERTAIN"
+    confidence: number
+    explanation: string
+  }> {
+    const bytes = await file.arrayBuffer()
+    const base64 = Buffer.from(bytes).toString("base64")
+
+    const geminiUrl = `${GEMINI_API}?key=${GEMINI_API_KEY}`
+
+    const body = {
+      contents: [
+        {
+          parts: [
+            {
+              inlineData: {
+                mimeType: file.type,
+                data: base64,
+              },
+            },
+            {
+              text: `
+  Analyze this ${type} and determine if it is AI-generated.
+
+  RULES:
+  - Respond ONLY in JSON
+  - Do NOT add markdown
+  - Use this exact format:
+
+  {
+    "verdict": "AI_GENERATED | LIKELY_REAL | UNCERTAIN",
+    "confidence": number (0-100),
+    "explanation": string (max 2 sentences)
+  }
+              `,
+            },
+          ],
+        },
+      ],
     }
 
-    console.log("NLP Processed Query:", nlpQuery);
+    const res = await fetch(geminiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    })
 
-    // ---------------------------------------------------
-    // 3. PASS NLP QUERY TO GOOGLE FACT CHECK API
-    // ---------------------------------------------------
-    const factUrl = new URL(FACT_API);
-    factUrl.searchParams.append("query", nlpQuery);
-    factUrl.searchParams.append("key", GOOGLE_API_KEY);
+    const data = await res.json()
 
-    const factResponse = await fetch(factUrl.toString());
+    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text
+    if (!raw) throw new Error("AI detection failed")
+
+    return JSON.parse(raw)
+  }
+
+  try {
+    const formData = await request.formData()
+
+    const type = formData.get("type") as string
+    const query = formData.get("query") as string | null
+    const file = formData.get("file") as File | null
+
+    if (!type) {
+      return NextResponse.json(
+        { error: "Type is required" },
+        { status: 400 }
+      )
+    }
+
+    // -----------------------------------
+    // 1. HANDLE TEXT / LINK
+    // -----------------------------------
+    let finalClaim = ""
+
+    if (type === "text" || type === "link") {
+      if (!query) {
+        return NextResponse.json(
+          { error: "Query is required" },
+          { status: 400 }
+        )
+      }
+
+      finalClaim = await processTextWithGemini(query)
+    }
+
+    // -----------------------------------
+    // 2. HANDLE IMAGE / VIDEO
+    // -----------------------------------
+    if (type === "image" || type === "video") {
+      if (!file) {
+        return NextResponse.json(
+          { error: "File is required" },
+          { status: 400 }
+        )
+      }
+
+      const aiDetection = await detectAIGeneratedMedia(file, type)
+
+      return NextResponse.json({
+        input_type: type,
+        ai_generated_check: aiDetection,
+      })
+    }
+
+    // -----------------------------------
+    // 3. GOOGLE FACT CHECK API
+    // -----------------------------------
+    const factUrl = new URL(FACT_API)
+    factUrl.searchParams.append("query", finalClaim)
+    factUrl.searchParams.append("key", GOOGLE_API_KEY)
+
+    const factResponse = await fetch(factUrl.toString())
 
     if (!factResponse.ok) {
-      throw new Error("Fact Check API error");
+      throw new Error("Fact Check API failed")
     }
 
-    const factData = await factResponse.json();
-    console.log("Fact Check API Response:", factData);
+    const factData = await factResponse.json()
 
-    // -----------------------------------
-    // 4. RETURN FINAL FACT CHECK RESULTS
-    // -----------------------------------
     return NextResponse.json({
-      user_query: query,
-      // nlp_query: nlpQuery,
+      input_type: type,
+      extracted_claim: finalClaim,
       fact_check_results: factData,
-    });
+    })
   } catch (error: any) {
-    console.error("Full API Error:", error);
+    console.error("API ERROR:", error)
     return NextResponse.json(
-      { error: "Failed to process fact-check request", details: error.message },
+      { error: "Fact check failed", details: error.message },
       { status: 500 }
-    );
+    )
   }
 }
