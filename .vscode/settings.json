@@ -1,0 +1,6 @@
+{
+    "kiroAgent.enableCodebaseIndexing": true,
+    "kiroAgent.enableDebugLogs": true,
+    "kiroAgent.enableTabAutocomplete": true,
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+}
