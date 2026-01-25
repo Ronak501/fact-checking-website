@@ -6,10 +6,12 @@ An AI-powered fact-checking web application that helps users verify information 
 
 ### Core Features
 
-- **Multi-modal Fact Checking**: Supports text claims, links, images, and videos
+- **Multi-modal Fact Checking**: Supports text claims, comprehensive link analysis, images, and videos
 - **AI-Powered Analysis**: Uses Google's Gemini AI for claim extraction and content analysis
+- **Link Content Verification**: Deep analysis of web articles, blog posts, and social media content with source credibility assessment
 - **Real-time Verification**: Instant fact-checking results with detailed explanations
 - **AI Content Detection**: Identifies AI-generated images and videos
+- **Source Credibility Assessment**: Evaluates domain reputation and publication standards
 - **Trusted Sources**: Leverages Google Fact Check API with 100+ trusted publishers
 
 ### User Experience
@@ -23,6 +25,8 @@ An AI-powered fact-checking web application that helps users verify information 
 ### Target Use Cases
 
 - Verifying news claims and social media posts
+- Deep analysis of web articles and blog content with automatic claim extraction
+- Assessing source credibility and publication reliability
 - Checking authenticity of images and videos
-- Fact-checking article links and URLs
+- Fact-checking article links and URLs with comprehensive content analysis
 - Detecting AI-generated content
