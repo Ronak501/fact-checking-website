@@ -5,35 +5,17 @@
 [![Next.js](https://img.shields.io/badge/Next.js-16.1-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 
-A modern, AI-powered fact-checking web application built with Next.js 16, TypeScript, and Google's Generative AI. This application helps users verify information and check facts in real-time using advanced machine learning models and comprehensive web content analysis.
+A modern, AI-powered fact-checking web application built with Next.js 16, TypeScript, and Google's Generative AI. This application helps users verify information and check facts in real-time using advanced machine learning models.
 
 ## ✨ Features
 
 - 🤖 **AI-Powered Fact Checking**: Leverages Google's Generative AI for accurate fact verification
-- 🔗 **Advanced Link Content Verification**: Deep analysis of web content with automatic claim extraction, source credibility assessment, and comprehensive fact-checking
-- 🎯 **Multi-Modal Analysis**: Support for text claims, images, videos, and web links
 - ⚡ **Real-time Analysis**: Instant fact-checking results with detailed explanations
-- 🏆 **Source Credibility Assessment**: Evaluate the reliability and trustworthiness of information sources
 - 🎨 **Modern UI**: Built with Radix UI components and Tailwind CSS for a sleek, responsive design
 - 🌙 **Dark Mode Support**: Automatic theme switching with next-themes
 - 📊 **Data Visualization**: Interactive charts and graphs using Recharts
 - 🔐 **Type-Safe**: Fully typed with TypeScript and validated with Zod schemas
 - 📱 **Responsive Design**: Mobile-first approach for all device sizes
-
-## 🚧 Development Status
-
-### Link Content Verification (In Development)
-The advanced link content verification feature is currently under active development using a spec-driven approach. This feature will provide:
-
-- **URL Validation & Processing**: Comprehensive URL validation with support for shortened URLs and various content types
-- **Content Extraction**: Intelligent web scraping with metadata extraction and content parsing
-- **AI-Powered Claim Analysis**: Automatic identification and extraction of factual claims using Google's Generative AI
-- **Source Credibility Assessment**: Domain reputation analysis and publication standards evaluation
-- **Integrated Fact-Checking**: Seamless integration with Google Fact Check API for comprehensive verification
-
-**Current Implementation Progress**: Core data types and URL validation completed, content extraction and claim analysis in progress.
-
-For detailed technical specifications, see `.kiro/specs/link-content-verification/` directory.
 
 ## 🚀 Live Demo
 
@@ -70,23 +52,6 @@ For detailed technical specifications, see `.kiro/specs/link-content-verificatio
 - Scroll Area, Select, Slider, Switch, Tabs, Toast, Tooltip
 - Carousel (embla-carousel-react), Command Palette (cmdk)
 - OTP Input (input-otp), Drawer (vaul)
-
-## 🧪 Testing Strategy
-
-This project uses a comprehensive testing approach combining:
-
-- **Property-Based Testing**: Using `fast-check` to verify correctness properties across all possible inputs
-- **Unit Testing**: Focused tests for specific functionality and edge cases  
-- **Integration Testing**: End-to-end workflow validation
-- **Type Safety**: Full TypeScript coverage with strict mode enabled
-
-### Running Tests
-
-```bash
-npm test              # Run all tests
-npm run test:watch    # Run tests in watch mode
-npm run test:coverage # Generate coverage report
-```
 
 ## 📦 Installation
 
@@ -143,18 +108,11 @@ npm run lint     # Run ESLint to check code quality
 ```
 fact-checking-website/
 ├── app/                  # Next.js 16 App Router pages
-│   └── api/             # API route handlers
-│       ├── fact-check/  # Text fact-checking endpoint
-│       └── link-verification/ # Link content verification endpoint (in development)
 ├── components/           # Reusable React components
 │   └── ui/              # Radix UI component wrappers
 ├── lib/                 # Utility functions and helpers
-│   └── __tests__/       # Property-based and unit tests
-├── types/               # TypeScript type definitions
 ├── public/              # Static assets
 ├── styles/              # Global styles and Tailwind config
-├── .kiro/               # Kiro configuration and specifications
-│   └── specs/           # Feature specifications and implementation plans
 ├── components.json      # Shadcn UI configuration
 ├── next.config.mjs      # Next.js configuration
 ├── tailwind.config.js   # Tailwind CSS configuration
@@ -164,17 +122,6 @@ fact-checking-website/
 
 ## 🔄 How It Works
 
-### Fact-Checking Modes
-1. **Text Claims**: Enter any statement or claim for immediate verification
-2. **Advanced Link Analysis**: Submit URLs for comprehensive content analysis including:
-   - Automatic claim extraction from web pages
-   - Source credibility and domain reputation assessment  
-   - Fact-checking of extracted claims against trusted sources
-   - Support for articles, blog posts, and social media content
-3. **Image Verification**: Upload images to detect AI-generated content and verify authenticity
-4. **Video Analysis**: Upload videos for comprehensive authenticity and manipulation detection
-
-### Development Workflow
 1. **Create & Modify**: Build your project using [v0.app](https://v0.app)
 2. **Deploy**: Deploy your chats from the v0 interface
 3. **Auto-Sync**: Changes are automatically pushed to this repository
