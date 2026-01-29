@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 
 // API KEYS
-const GOOGLE_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_API_KEY!
+const FACT_API_KEY = process.env.NEXT_PUBLIC_FACT_API_KEY!
 const GEMINI_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY!
 const FACT_API = process.env.NEXT_PUBLIC_FACT_API!
 const GEMINI_API = process.env.NEXT_PUBLIC_GEMINI_API!
@@ -201,7 +201,7 @@ export async function POST(request: Request) {
     // -----------------------------------
     const factUrl = new URL(FACT_API)
     factUrl.searchParams.append("query", finalClaim)
-    factUrl.searchParams.append("key", GOOGLE_API_KEY)
+    factUrl.searchParams.append("key", FACT_API_KEY)
 
     const factResponse = await fetch(factUrl.toString())
 
