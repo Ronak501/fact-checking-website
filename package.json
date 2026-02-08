@@ -1,13 +1,12 @@
 {
-  "name": "my-v0-project",
+  "name": "fact-checking",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "next build && npm run sentry:sourcemaps",
+    "build": "next build",
     "dev": "next dev",
     "lint": "eslint .",
-    "start": "next start",
-    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org sarvajanik-college-of-engin-n5 --project javascript-nextjs-2m .next && sentry-cli sourcemaps upload --org sarvajanik-college-of-engin-n5 --project javascript-nextjs-2m .next"
+    "start": "next start"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
