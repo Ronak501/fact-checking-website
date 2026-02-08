@@ -12,6 +12,7 @@ import {
   LogIn,
   UserPlus,
   Upload,
+  ShoppingBag,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -47,6 +48,14 @@ export default function Hero({
         </span>
 
         <div className="flex gap-2">
+
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/pricing" className="flex items-center gap-2">
+              <ShoppingBag className="w-4 h-4" />
+              Pricing
+            </Link>
+          </Button>
+
           <Button variant="ghost" size="sm" asChild>
             <Link href="/login" className="flex items-center gap-2">
               <LogIn className="w-4 h-4" />
