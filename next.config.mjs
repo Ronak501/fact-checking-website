@@ -2,25 +2,23 @@ import { withSentryConfig } from "@sentry/nextjs";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     ignoreBuildErrors: true,
   },
+
   images: {
     unoptimized: true,
   },
-  experimental: {
-    serverComponentsExternalPackages: [
-      "@sentry/nextjs",
-      "sharp",
-      "puppeteer",
-      "playwright",
-      "onnxruntime-node",
-      "tensorflow",
-    ],
-  },
+
+  // MOVED OUT OF `experimental`
+  serverExternalPackages: [
+    "@sentry/nextjs",
+    "sharp",
+    "puppeteer",
+    "playwright",
+    "onnxruntime-node",
+    "tensorflow",
+  ],
 };
 
 export default withSentryConfig(nextConfig, {
@@ -29,7 +27,7 @@ export default withSentryConfig(nextConfig, {
 
   silent: true,
 
-  // 👇 THIS IS THE IMPORTANT PART
+  // Safe for local dev without auth token
   dryRun: !process.env.SENTRY_AUTH_TOKEN,
 
   widenClientFileUpload: true,
