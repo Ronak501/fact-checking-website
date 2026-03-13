@@ -37,12 +37,14 @@ export default function Hero({
   };
 
   return (
-    <div className="w-full space-y-5">
+    <div className="mx-auto w-full max-w-2xl space-y-6">
       {/* Heading */}
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl md:text-4xl font-semibold">Verify the Truth</h1>
+      <div className="space-y-2 text-center">
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 md:text-5xl">
+          Verify the Truth
+        </h1>
 
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-slate-600 dark:text-slate-300 md:text-base">
           Fact-check text, images, videos, and links using trusted sources
         </p>
       </div>
@@ -57,7 +59,7 @@ export default function Hero({
         }}
         className="flex justify-center"
       >
-        <TabsList className="grid grid-cols-4 w-full max-w-sm">
+        <TabsList className="grid w-full max-w-md grid-cols-4 rounded-xl border border-blue-100 bg-blue-50/80 p-1 dark:border-slate-800 dark:bg-slate-900/80">
           <TabsTrigger value="text" className="gap-1 text-xs">
             <FileText className="w-3 h-3" /> Text
           </TabsTrigger>
@@ -77,19 +79,29 @@ export default function Hero({
       </Tabs>
 
       {/* Form */}
-      <form onSubmit={(e) => onSearch(e, type, file)} className="space-y-3">
+      <form onSubmit={(e) => onSearch(e, type, file)} className="space-y-4">
         {(type === "text" || type === "link") && (
-          <Input
-            type="text"
-            placeholder={placeholderMap[type]}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="h-10"
-          />
+          <div className="mx-auto flex w-full max-w-xl items-center gap-2 rounded-2xl border border-blue-100 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <Input
+              type="text"
+              placeholder={placeholderMap[type]}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="h-10 border-0 bg-transparent shadow-none focus-visible:ring-0"
+            />
+            <Button
+              type="submit"
+              className="gap-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+              disabled={loading}
+            >
+              <Search className="h-4 w-4" />
+              {loading ? "Checking..." : "Verify"}
+            </Button>
+          </div>
         )}
 
         {(type === "image" || type === "video") && (
-          <label className="border border-dashed rounded-lg p-4 cursor-pointer hover:bg-muted transition block">
+          <label className="mx-auto block w-full max-w-xl cursor-pointer rounded-2xl border border-dashed border-blue-200 bg-blue-50/70 p-5 transition hover:bg-blue-100/70 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800">
             <input
               type="file"
               accept={type === "image" ? "image/*" : "video/*"}
@@ -97,8 +109,8 @@ export default function Hero({
               onChange={(e) => setFile(e.target.files?.[0] || null)}
             />
 
-            <div className="flex flex-col items-center gap-1 text-muted-foreground text-sm">
-              <Upload className="w-5 h-5" />
+            <div className="flex flex-col items-center gap-1 text-sm text-slate-600 dark:text-slate-300">
+              <Upload className="h-5 w-5" />
 
               <span>
                 {file
@@ -111,31 +123,39 @@ export default function Hero({
           </label>
         )}
 
-        <Button
-          type="submit"
-          className="w-full gap-2"
-          disabled={loading || (type !== "text" && type !== "link" && !file)}
-        >
-          <Search className="w-4 h-4" />
-          {loading ? "Checking..." : "Verify"}
-        </Button>
+        {(type === "image" || type === "video") && (
+          <Button
+            type="submit"
+            className="mx-auto flex w-full max-w-xl gap-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+            disabled={loading || !file}
+          >
+            <Search className="w-4 h-4" />
+            {loading ? "Checking..." : "Verify"}
+          </Button>
+        )}
       </form>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-3 pt-3 text-xs text-center">
-        <div>
-          <div className="font-semibold text-primary">100+</div>
-          <p className="text-muted-foreground">Publishers</p>
+      <div className="grid grid-cols-3 gap-3 pt-2 text-center text-xs">
+        <div className="rounded-xl border border-blue-100 bg-blue-50/70 p-3 dark:border-slate-800 dark:bg-slate-900">
+          <div className="font-semibold text-blue-700 dark:text-blue-300">
+            100+
+          </div>
+          <p className="text-slate-600 dark:text-slate-400">Publishers</p>
         </div>
 
-        <div>
-          <div className="font-semibold text-primary">AI</div>
-          <p className="text-muted-foreground">Multi-modal</p>
+        <div className="rounded-xl border border-blue-100 bg-blue-50/70 p-3 dark:border-slate-800 dark:bg-slate-900">
+          <div className="font-semibold text-blue-700 dark:text-blue-300">
+            AI
+          </div>
+          <p className="text-slate-600 dark:text-slate-400">Multi-modal</p>
         </div>
 
-        <div>
-          <div className="font-semibold text-primary">Real-time</div>
-          <p className="text-muted-foreground">Results</p>
+        <div className="rounded-xl border border-blue-100 bg-blue-50/70 p-3 dark:border-slate-800 dark:bg-slate-900">
+          <div className="font-semibold text-blue-700 dark:text-blue-300">
+            Real-time
+          </div>
+          <p className="text-slate-600 dark:text-slate-400">Results</p>
         </div>
       </div>
     </div>

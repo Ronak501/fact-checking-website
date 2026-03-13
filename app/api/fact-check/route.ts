@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server"
+import { createClient } from "@/utils/supabase/server"
+import { extractGeminiUsage, logUsageEvent } from "@/lib/usage-tracking"
 
 // API KEYS
 const FACT_API_KEY = process.env.NEXT_PUBLIC_FACT_API_KEY!
@@ -7,8 +9,20 @@ const FACT_API = process.env.NEXT_PUBLIC_FACT_API!
 const GEMINI_API = process.env.NEXT_PUBLIC_GEMINI_API!
 
 export async function POST(request: Request) {
+  const startedAt = Date.now()
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  async function processTextWithGemini(query: string): Promise<string> {
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  async function processTextWithGemini(query: string): Promise<{
+    claim: string
+    usageMetadata?: unknown
+  }> {
     const geminiUrl = `${GEMINI_API}?key=${GEMINI_API_KEY}`
 
     const body = {
@@ -42,7 +56,10 @@ export async function POST(request: Request) {
     const claim = data.candidates?.[0]?.content?.parts?.[0]?.text
     if (!claim) throw new Error("Gemini NLP failed")
 
-    return claim
+    return {
+      claim,
+      usageMetadata: data.usageMetadata,
+    }
   }
 
   async function processMediaWithGemini(
@@ -96,6 +113,7 @@ export async function POST(request: Request) {
     verdict: "AI_GENERATED" | "LIKELY_REAL" | "UNCERTAIN"
     confidence: number
     explanation: string
+    usageMetadata?: unknown
   }> {
     const bytes = await file.arrayBuffer()
     const base64 = Buffer.from(bytes).toString("base64")
@@ -144,7 +162,10 @@ export async function POST(request: Request) {
     const raw = data.candidates?.[0]?.content?.parts?.[0]?.text
     if (!raw) throw new Error("AI detection failed")
 
-    return JSON.parse(raw)
+    return {
+      ...JSON.parse(raw),
+      usageMetadata: data.usageMetadata,
+    }
   }
 
   try {
@@ -165,6 +186,10 @@ export async function POST(request: Request) {
     // 1. HANDLE TEXT / LINK
     // -----------------------------------
     let finalClaim = ""
+    let promptTokens = 0
+    let completionTokens = 0
+    let totalTokens = 0
+    let estimated = false
 
     if (type === "text" || type === "link") {
       if (!query) {
@@ -174,7 +199,14 @@ export async function POST(request: Request) {
         )
       }
 
-      finalClaim = await processTextWithGemini(query)
+      const textResult = await processTextWithGemini(query)
+      finalClaim = textResult.claim
+
+      const usage = extractGeminiUsage(textResult.usageMetadata)
+      promptTokens += usage.promptTokens
+      completionTokens += usage.completionTokens
+      totalTokens += usage.totalTokens
+      estimated = estimated || usage.estimated
     }
 
     // -----------------------------------
@@ -189,6 +221,26 @@ export async function POST(request: Request) {
       }
 
       const aiDetection = await detectAIGeneratedMedia(file, type)
+
+      const usage = extractGeminiUsage(aiDetection.usageMetadata)
+      await logUsageEvent({
+        userId: user.id,
+        requestType: "fact-check-media",
+        model: "gemini-1.5-pro",
+        promptTokens: usage.promptTokens,
+        completionTokens: usage.completionTokens,
+        totalTokens: usage.totalTokens,
+        latencyMs: Date.now() - startedAt,
+        status: "success",
+        estimated: usage.estimated,
+        metadata: {
+          inputType: type,
+          fileType: file.type,
+          fileSize: file.size,
+          verdict: aiDetection.verdict,
+          confidence: aiDetection.confidence,
+        },
+      })
 
       return NextResponse.json({
         input_type: type,
@@ -211,6 +263,25 @@ export async function POST(request: Request) {
 
     const factData = await factResponse.json()
 
+    await logUsageEvent({
+      userId: user.id,
+      requestType: "fact-check-text",
+      model: "gemini-1.5-pro",
+      promptTokens,
+      completionTokens,
+      totalTokens,
+      latencyMs: Date.now() - startedAt,
+      status: "success",
+      estimated,
+      metadata: {
+        inputType: type,
+        claim: finalClaim,
+        factResponseClaims: Array.isArray(factData?.claims)
+          ? factData.claims.length
+          : 0,
+      },
+    })
+
     return NextResponse.json({
       input_type: type,
       extracted_claim: finalClaim,
@@ -218,6 +289,22 @@ export async function POST(request: Request) {
     })
   } catch (error: any) {
     console.error("API ERROR:", error)
+
+    await logUsageEvent({
+      userId: user.id,
+      requestType: "fact-check-text",
+      model: "gemini-1.5-pro",
+      promptTokens: 0,
+      completionTokens: 0,
+      totalTokens: 0,
+      latencyMs: Date.now() - startedAt,
+      status: "error",
+      estimated: true,
+      metadata: {
+        error: String(error?.message ?? "Unknown error"),
+      },
+    })
+
     return NextResponse.json(
       { error: "Fact check failed", details: error.message },
       { status: 500 }

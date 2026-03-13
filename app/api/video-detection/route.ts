@@ -5,6 +5,8 @@ import { join } from 'path';
 import { randomUUID } from 'crypto';
 import { validateVideoFile, VIDEO_CONSTRAINTS } from '@/lib/video-utils';
 import { deleteTemporaryFile } from '@/lib/file-cleanup';
+import { createClient } from '@/utils/supabase/server';
+import { logUsageEvent } from '@/lib/usage-tracking';
 
 // Initialize Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY || '');
@@ -115,6 +117,17 @@ async function validateFileDuration(file: File): Promise<{ valid: boolean; durat
 export async function POST(request: NextRequest) {
     const startTime = Date.now();
     let tempFilePath: string | null = null;
+    const supabase = await createClient();
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+        return NextResponse.json(
+            { success: false, error: 'Unauthorized' },
+            { status: 401 }
+        );
+    }
 
     try {
         // Ensure temporary directory exists
@@ -241,11 +254,44 @@ export async function POST(request: NextRequest) {
             processingTime,
         };
 
+        await logUsageEvent({
+            userId: user.id,
+            requestType: 'video-detection',
+            model: 'gemini-1.5-pro',
+            promptTokens: 0,
+            completionTokens: 0,
+            totalTokens: 0,
+            latencyMs: processingTime,
+            status: 'success',
+            estimated: true,
+            metadata: {
+                analysisId,
+                fileType: file.type,
+                fileSize: file.size,
+                analysisTypes: requestedAnalysisTypes,
+            },
+        });
+
         console.log(`Video analysis request completed: ID=${analysisId}, Time=${processingTime}ms`);
         return NextResponse.json(response);
 
     } catch (error) {
         console.error('Video detection API error:', error);
+
+        await logUsageEvent({
+            userId: user.id,
+            requestType: 'video-detection',
+            model: 'gemini-1.5-pro',
+            promptTokens: 0,
+            completionTokens: 0,
+            totalTokens: 0,
+            latencyMs: Date.now() - startTime,
+            status: 'error',
+            estimated: true,
+            metadata: {
+                error: error instanceof Error ? error.message : 'Unknown error',
+            },
+        });
 
         // Clean up temporary file on error
         if (tempFilePath) {

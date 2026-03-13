@@ -4,9 +4,16 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import SearchResults from "@/components/search-results";
 import Hero from "@/components/hero";
+import ThemeToggle from "../components/theme-toggle";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ShoppingBag, LogIn, UserPlus, User } from "lucide-react";
+import {
+  ShoppingBag,
+  LogIn,
+  UserPlus,
+  User,
+  MessageSquare,
+} from "lucide-react";
 
 export default function HomeClient({ user }: { user: any }) {
   const [query, setQuery] = useState("");
@@ -46,19 +53,23 @@ export default function HomeClient({ user }: { user: any }) {
   };
 
   return (
-    <main className="bg-gradient-to-b from-white to-gray-100 px-6 py-4">
-      <div className="max-w-5xl mx-auto">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#dbeafe,transparent_45%),linear-gradient(180deg,#ffffff,#eff6ff)] px-4 py-4 dark:bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.18),transparent_40%),linear-gradient(180deg,#05070b,#0a0f1a)] md:px-6">
+      <div className="mx-auto flex min-h-[calc(100vh-2rem)] max-w-5xl flex-col">
         {/* Header */}
-        <header className="flex justify-between items-center mb-6">
-          <h1 className="text-lg font-semibold text-gray-800">FactCheck AI</h1>
+        <header className="mb-6 flex items-center justify-between gap-2 rounded-xl border border-blue-100 bg-white/90 px-3 py-2 backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
+          <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+            FactCheck AI
+          </h1>
 
           {user && (
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-slate-600 dark:text-slate-300">
               Welcome, <span className="font-medium">{user.email}</span>
             </p>
           )}
 
           <div className="flex gap-2">
+            <ThemeToggle />
+
             <Button variant="ghost" size="sm" asChild>
               <Link href="/pricing" className="flex items-center gap-2">
                 <ShoppingBag className="w-4 h-4" />
@@ -83,12 +94,21 @@ export default function HomeClient({ user }: { user: any }) {
                 </Button>
               </>
             ) : (
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/profile" className="flex items-center gap-2">
-                  <User className="w-4 h-4" />
-                  Profile
-                </Link>
-              </Button>
+              <>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/chat" className="flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4" />
+                    Chat
+                  </Link>
+                </Button>
+
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/profile" className="flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    Profile
+                  </Link>
+                </Button>
+              </>
             )}
           </div>
         </header>
@@ -102,8 +122,8 @@ export default function HomeClient({ user }: { user: any }) {
 
         {/* Hero Section */}
         {!results && (
-          <div className="flex justify-center">
-            <Card className="w-full max-w-2xl p-6 bg-white/70 backdrop-blur-xl border border-gray-200 shadow-md rounded-xl">
+          <div className="flex flex-1 items-center justify-center">
+            <Card className="w-full max-w-3xl rounded-2xl border border-blue-100 bg-white/95 p-6 shadow-lg backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/80 md:p-8">
               <Hero
                 query={query}
                 setQuery={setQuery}
@@ -117,8 +137,8 @@ export default function HomeClient({ user }: { user: any }) {
         {/* Loading */}
         {loading && (
           <div className="flex justify-center mt-4">
-            <Card className="p-4 bg-white/70 backdrop-blur-lg border border-gray-200 rounded-lg">
-              <p className="text-gray-600 animate-pulse text-sm">
+            <Card className="rounded-lg border border-blue-100 bg-white/90 p-4 backdrop-blur-lg dark:border-slate-800 dark:bg-slate-950/80">
+              <p className="animate-pulse text-sm text-slate-600 dark:text-slate-300">
                 FactCheck AI is analyzing the claim...
               </p>
             </Card>
@@ -127,8 +147,8 @@ export default function HomeClient({ user }: { user: any }) {
 
         {/* Results */}
         {results && (
-          <div className="mt-4">
-            <Card className="p-5 bg-white/80 backdrop-blur-xl border border-gray-200 rounded-xl shadow">
+          <div className="mt-4 flex-1">
+            <Card className="rounded-xl border border-blue-100 bg-white/95 p-5 shadow dark:border-slate-800 dark:bg-slate-950/80">
               <SearchResults data={results} />
             </Card>
           </div>
