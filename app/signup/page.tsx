@@ -1,25 +1,35 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/utils/supabase/client";
+import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Eye, EyeOff, Mail, Lock, CheckCircle } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, CheckCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function SignupPage() {
+  const supabase = createClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [fullName, setFullName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const router = useRouter();
+
+  const handleSignup = async (e:any) => {
     e.preventDefault();
 
-    // ✅ Frontend password match check
+    if (!fullName || !username || !email || !password) {
+      setError("All fields are required");
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -27,23 +37,25 @@ export default function SignupPage() {
 
     setLoading(true);
     setError("");
-    setSuccess("");
 
-    const { error } = await supabase().auth.signUp({
+    const { data, error: authError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          full_name: fullName,
+          username: username,
+        },
+      },
     });
 
-    if (error) {
-      setError(error.message);
-    } else {
-      setSuccess(
-        "Account created successfully! Please check your email to confirm."
-      );
-      setPassword("");
-      setConfirmPassword("");
+    if (authError) {
+      setError(authError.message);
+      setLoading(false);
+      return;
     }
 
+    setSuccess("Account created successfully!");
     setLoading(false);
   };
 
@@ -57,14 +69,12 @@ export default function SignupPage() {
           </p>
         </div>
 
-        {/* Error */}
         {error && (
           <div className="text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md p-3">
             {error}
           </div>
         )}
 
-        {/* Success */}
         {success && (
           <div className="text-sm text-green-700 bg-green-100 border border-green-200 rounded-md p-3 flex gap-2 items-center">
             <CheckCircle className="h-4 w-4" />
@@ -73,18 +83,50 @@ export default function SignupPage() {
         )}
 
         <form onSubmit={handleSignup} className="space-y-4">
+          {/* Full Name */}
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Full Name</label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <input
+                className="w-full pl-9 pr-3 py-2 border rounded-md"
+                type="text"
+                placeholder="Ronak Talaviya"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          {/* User Name */}
+          <div className="space-y-1">
+            <label className="text-sm font-medium">User Name</label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <input
+                className="w-full pl-9 pr-3 py-2 border rounded-md"
+                type="text"
+                placeholder="Ronak_51"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
           {/* Email */}
           <div className="space-y-1">
             <label className="text-sm font-medium">Email</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input
-                className="w-full pl-9 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full pl-9 pr-3 py-2 border rounded-md"
                 type="email"
                 placeholder="you@example.com"
-                required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                required
               />
             </div>
           </div>
@@ -95,23 +137,19 @@ export default function SignupPage() {
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input
-                className="w-full pl-9 pr-10 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full pl-9 pr-10 py-2 border rounded-md"
                 type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
-                required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute right-3 top-1/2 -translate-y-1/2"
               >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
           </div>
@@ -122,25 +160,19 @@ export default function SignupPage() {
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input
-                className="w-full pl-9 pr-10 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full pl-9 pr-10 py-2 border rounded-md"
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="••••••••"
-                required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                required
               />
               <button
                 type="button"
-                onClick={() =>
-                  setShowConfirmPassword(!showConfirmPassword)
-                }
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2"
               >
-                {showConfirmPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
+                {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
           </div>
@@ -152,10 +184,7 @@ export default function SignupPage() {
 
         <div className="text-center text-sm text-muted-foreground">
           Already have an account?{" "}
-          <a
-            href="/login"
-            className="text-primary hover:underline font-medium"
-          >
+          <a href="/login" className="text-primary hover:underline font-medium">
             Login
           </a>
         </div>
